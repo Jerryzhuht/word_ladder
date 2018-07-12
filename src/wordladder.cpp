@@ -18,13 +18,9 @@
 #include "vector.h"
 #include "queue.h"
 #include "filelib.h"
+#include "stack.h"
 using namespace std;
 
-void getWords() {
-    //prompt the user for two words
-    string word1 = getLine("Word 1 (or Enter to quit): ");
-    string word2 = getLine("word 2 (or Enter to quit): ");
-}
 
 Set <string> transferDictionary(){
 
@@ -32,82 +28,86 @@ Set <string> transferDictionary(){
     promptUserForFile(infile, "Dictionary name?");
     Set<string>file_set;
 
-
     string line;
     while(getline(infile, line)){
         file_set.add(line);
-
-
-
-
 
     }
 return file_set;
 
 }
 
-Stack <string> findNeighbours(string word1, string word2, const Set<string> & infile){
+Stack <string> findNeighbours(string word1, string word2, const Set<string> & dictionary){
     Queue<Stack<string> > queueOfStacks;
-    while (queueOfStacks.size() != 0){
-        for (char r = 'a'; r <= 'z'; r ++) {
-            queueOfStacks.dequeue();
-            for (int i = 0; i < word1.length(); i++) {
-                //enqueue the orignal word to the queue
-                Stack<string> q;
-                q.push(word1);
-                //substitute one letter in the word to the letter in the alphabet and assign it to a new word
-                string newWord1 = word1;
-                newWord1[i] = r;
-                //Check if the new word (neighbour is a valid English word
-                if (infile.contains(newWord1)){
-                    //if the word(Newly found neighbour is valid aka can be found in the dictionary, add the neighbour to the word and form a new queue
-                    Stack<string> q1;
-                    q1 = queueOfStacks.peek();
-                    q1.push(word1);
-                    q1.push(newWord1);
-                    // Enqueue the stack to the queue
-                    queueOfStacks.enqueue(q1);
-                    if (word1 == word2){
-                        return q1;
+    Stack<string> s1;
+    s1.push(word1);
+    queueOfStacks.enqueue(s1);
+    Set<string> usedWord;
+    usedWord.add(word1);
 
+    while (queueOfStacks.size() != 0){
+        Stack<string> analyzingStack = queueOfStacks.dequeue();
+        string analyzingWord = analyzingStack.peek();
+        int len = analyzingWord.length();
+
+        for (char r = 'a'; r <= 'z'; r ++) {
+            //queueOfStacks.dequeue();
+            for (int i = 0; i < len; i++) {
+                //substitute one letter in the word to the letter in the alphabet and assign it to a new word
+                string neighbourWord;
+                neighbourWord = analyzingWord;
+                neighbourWord[i] = r;
+                //new word is not old word
+                if (neighbourWord != analyzingWord){
+                    if((dictionary.contains(neighbourWord)==true) && (usedWord.contains(neighbourWord)==false)){
+                        analyzingStack.push(neighbourWord);
+                        queueOfStacks.enqueue(analyzingStack);
                     }
-                    else if (queueOfStacks.size() == 0) {
-                        return null
+                    if(neighbourWord == word2){
+                        return analyzingStack;
                     }
                 }
             }
         }
     }
+    cout << "Exhausted!"<<endl;
+    Stack<string> emptyStack;
+    return emptyStack;
 
 }
 
-int main() {
-    // TODO: Finish the program!
-    string word1, word2;
-    set Dictionary;
 
+int main() {
     cout << "Welcome to CS 106B/X Word Ladder!" << endl;
     cout << "Please give me two English words, and I will convert the" << endl;
-    cout << "first into the second by modifying one letter at a time." << endl <<endl;
-    ifstream infile;
+    cout << "first into the second by modifying one letter at a time." << endl;
+    cout<<endl;
 
-//    promptuserForFile(infile, "Dictionary file name:");
+    Set<string> dictionary = transferDictionary();
+    while(true){
+        string word1 = getLine("Word 1 (or Enter to quit): ");
+        if (word1 ==""){
+            break;
+        }
+        string word2 = getLine("Word 2 (or Enter to quit): ");
+        if (word2 ==""){
+            break;
+        }
 
-    string promptUserForFile(ifstream& stream, string prompt = "Dictionary file name:", string reprompt = "Unable to open that file. Try again.");
-//    while (input.fail()){
-//        input.clear();
-//        cout<<"Unable to open that file. Try again."<<endl;
-//        cin>>filename;
-//        input.open(infile.c.str());
+        Stack<string> presentStack = findNeighbours(word1,word2,dictionary);
+        if(presentStack.isEmpty()){
+            cout<<"Exhausted"<<endl;
+        }
+        while(!presentStack.isEmpty()){
+            string word = presentStack.pop();
+            cout<<word<<" ";
 
-//    }
-    cout << "Dictionary file name: dictionary.txt" << endl << endl;
-    cout << "word1 (or Enter to quit):"<<word1<< endl;
-    cout << "word2 (or Enter to quit):"<<word2<< endl;
-    cout << "A ladder from data back to code:"<<endl;
-    cout << findNeighbours(word1, word2, set)<<endl;
+        }
+        cout<<endl;
+        cout<<endl;
+    }
 
-    cout << "Word 1 (or Enter to quit): "<< endl;
+
     cout << "Have a nice day." << endl;
     return 0;
 }
